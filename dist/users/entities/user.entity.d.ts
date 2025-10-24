@@ -1,0 +1,33 @@
+import { UserRole } from './user-role.enum';
+import { UserStatus } from './user-status.enum';
+export { UserRole, UserStatus };
+export declare class User {
+    id: number;
+    firstName: string;
+    lastName: string;
+    email: string;
+    mobile: string;
+    password: string;
+    role: UserRole;
+    status: UserStatus;
+    profilePicture: string;
+    city: string;
+    state: string;
+    country: string;
+    postalCode: string;
+    emailVerified: number;
+    mobileVerified: number;
+    lastLoginAt: Date;
+    lastLoginIp: string;
+    dateOfBirth: Date;
+    address: string;
+    adminPosition: string;
+    yearsOfExperience: string;
+    educationLevel: string;
+    certifications: string;
+    createdAt: Date;
+    updatedAt: Date;
+    hashPasswordBeforeInsert(): Promise<void>;
+    hashPasswordBeforeUpdate(): Promise<void>;
+    validatePassword(password: string): Promise<boolean>;
+}

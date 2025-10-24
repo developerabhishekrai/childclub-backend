@@ -1,0 +1,38 @@
+import { UserRole } from '../entities/user.entity';
+export declare class CreateUserDto {
+    firstName: string;
+    lastName: string;
+    email: string;
+    mobile?: string;
+    password: string;
+    confirmPassword: string;
+    role: UserRole;
+    dateOfBirth?: string;
+    gender?: string;
+    schoolName?: string;
+    grade?: string;
+    parentName?: string;
+    parentEmail?: string;
+    parentMobile?: string;
+    emergencyContact?: string;
+    medicalInfo?: string;
+    termsAccepted?: boolean;
+    address?: string;
+    city?: string;
+    state?: string;
+    country?: string;
+    postalCode?: string;
+    schoolType?: string;
+    schoolAddress?: string;
+    schoolCity?: string;
+    schoolState?: string;
+    schoolCountry?: string;
+    schoolPostalCode?: string;
+    schoolPhone?: string;
+    schoolEmail?: string;
+    schoolWebsite?: string;
+    adminPosition?: string;
+    yearsOfExperience?: string;
+    educationLevel?: string;
+    certifications?: string;
+}
