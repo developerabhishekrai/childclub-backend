@@ -45,23 +45,27 @@ import { ContactModule } from './contact/contact.module';
       envFilePath: '.env',
     }),
     
-    // Database
-    TypeOrmModule.forRoot({
-      type: 'mysql',
-      host: process.env.DB_HOST || 'localhost',
-      port: parseInt(process.env.DB_PORT) || 3306,
-      username: process.env.DB_USERNAME || 'root',
-      password: process.env.DB_PASSWORD || '',
-      database: process.env.DB_DATABASE || 'childclub',
-      entities: [__dirname + '/**/*.entity{.ts,.js}'],
-      synchronize: false, // Disable synchronization since database already exists
-      logging: process.env.NODE_ENV === 'development',
+    // Database - Use ConfigService for proper env variable loading
+    TypeOrmModule.forRootAsync({
+      useFactory: () => ({
+        type: 'mysql',
+        host: process.env.DB_HOST || 'localhost',
+        port: parseInt(process.env.DB_PORT || '3306'),
+        username: process.env.DB_USERNAME || 'root',
+        password: process.env.DB_PASSWORD || '',
+        database: process.env.DB_DATABASE || 'childclub',
+        entities: [__dirname + '/**/*.entity{.ts,.js}'],
+        synchronize: false, // Disable synchronization since database already exists
+        logging: process.env.NODE_ENV === 'development',
+      }),
     }),
     
-    // JWT
-    JwtModule.register({
-      secret: process.env.JWT_SECRET || 'childclub-secret-key',
-      signOptions: { expiresIn: '24h' },
+    // JWT - Use ConfigService for proper env variable loading
+    JwtModule.registerAsync({
+      useFactory: () => ({
+        secret: process.env.JWT_SECRET || 'childclub-secret-key',
+        signOptions: { expiresIn: '24h' },
+      }),
     }),
     
     // Mailer Module - Only import if credentials are configured
