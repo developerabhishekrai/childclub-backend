@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException, BadRequestException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, BadRequestException, Optional } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -19,7 +19,8 @@ export class AuthService {
     @InjectRepository(School)
     private readonly schoolRepository: Repository<School>,
     private readonly jwtService: JwtService,
-    private readonly mailerService: MailerService,
+    @Optional()
+    private readonly mailerService?: MailerService,
   ) {}
 
   async validateUser(email: string, password: string): Promise<any> {
@@ -388,33 +389,65 @@ export class AuthService {
 
   private async sendWelcomeEmail(email: string, firstName: string) {
     try {
+      if (!this.mailerService) {
+        console.log('⚠️ MailerService not configured. Skipping welcome email.');
+        return;
+      }
+      
+      console.log('📧 Attempting to send welcome email to:', email);
+      
       await this.mailerService.sendMail({
         to: email,
         subject: 'Welcome to ChildClub Management System',
-        template: 'welcome',
-        context: {
-          firstName,
-          loginUrl: `${process.env.FRONTEND_URL}/login`,
-        },
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #4CAF50;">Welcome to ChildClub Management System!</h2>
+            <p>Dear ${firstName},</p>
+            <p>Welcome to ChildClub! Your account has been successfully created.</p>
+            <p>You can now login using your credentials at: <a href="${process.env.FRONTEND_URL}/login">${process.env.FRONTEND_URL}/login</a></p>
+            <p>Best regards,<br>ChildClub Team</p>
+          </div>
+        `,
       });
+      
+      console.log('✅ Welcome email sent successfully to:', email);
     } catch (error) {
-      console.error('Failed to send welcome email:', error);
+      console.error('❌ Failed to send welcome email to:', email, error.message);
+      // Don't throw error to prevent user registration failure
     }
   }
 
   private async sendOtpEmail(email: string, otp: string) {
     try {
+      if (!this.mailerService) {
+        console.log('⚠️ MailerService not configured. Cannot send OTP email.');
+        console.log('OTP for', email, ':', otp); // Log OTP to console as fallback
+        return;
+      }
+      
+      console.log('📧 Attempting to send OTP email to:', email);
+      
       await this.mailerService.sendMail({
         to: email,
         subject: 'Your OTP for ChildClub',
-        template: 'otp',
-        context: {
-          otp,
-          expiryTime: '10 minutes',
-        },
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #2196F3;">Your OTP Code</h2>
+            <p>Your One-Time Password (OTP) for ChildClub is:</p>
+            <div style="background-color: #f5f5f5; padding: 20px; text-align: center; font-size: 24px; font-weight: bold; color: #333; border-radius: 5px; margin: 20px 0;">
+              ${otp}
+            </div>
+            <p>This OTP will expire in 10 minutes.</p>
+            <p>If you didn't request this OTP, please ignore this email.</p>
+            <p>Best regards,<br>ChildClub Team</p>
+          </div>
+        `,
       });
+      
+      console.log('✅ OTP email sent successfully to:', email);
     } catch (error) {
-      console.error('Failed to send OTP email:', error);
+      console.error('❌ Failed to send OTP email to:', email, error.message);
+      throw new Error('Failed to send OTP email. Please try again.');
     }
   }
 

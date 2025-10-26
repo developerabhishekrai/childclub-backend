@@ -2,8 +2,18 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtModule } from '@nestjs/jwt';
-import { MailerModule } from '@nestjs-modules/mailer';
 import { ScheduleModule } from '@nestjs/schedule';
+
+// Conditional import of MailerModule - only if credentials exist
+let MailerModuleClass = null;
+if (process.env.SMTP_USER && process.env.SMTP_PASS) {
+  try {
+    const mailerModule = require('@nestjs-modules/mailer');
+    MailerModuleClass = mailerModule.MailerModule;
+  } catch (e) {
+    console.log('MailerModule not available');
+  }
+}
 
 // Core modules
 import { AuthModule } from './auth/auth.module';
@@ -29,7 +39,7 @@ import { ContactModule } from './contact/contact.module';
 
 @Module({
   imports: [
-    // Configuration
+    // Configuration - MUST be first
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
@@ -54,21 +64,24 @@ import { ContactModule } from './contact/contact.module';
       signOptions: { expiresIn: '24h' },
     }),
     
-    // Mailer
-    MailerModule.forRoot({
+    // Mailer Module - Only import if credentials are configured
+    ...(MailerModuleClass ? [MailerModuleClass.forRoot({
       transport: {
         host: process.env.SMTP_HOST || 'smtp.gmail.com',
         port: parseInt(process.env.SMTP_PORT) || 587,
         secure: false,
         auth: {
-          user: process.env.SMTP_USER || '',
-          pass: process.env.SMTP_PASS || '',
+          user: process.env.SMTP_USER,
+          pass: process.env.SMTP_PASS,
         },
+        tls: {
+          rejectUnauthorized: false
+        }
       },
       defaults: {
         from: process.env.SMTP_FROM || 'noreply@childclub.com',
       },
-    }),
+    })] : []),
     
     // Schedule
     ScheduleModule.forRoot(),

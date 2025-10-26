@@ -11,8 +11,17 @@ const common_1 = require("@nestjs/common");
 const config_1 = require("@nestjs/config");
 const typeorm_1 = require("@nestjs/typeorm");
 const jwt_1 = require("@nestjs/jwt");
-const mailer_1 = require("@nestjs-modules/mailer");
 const schedule_1 = require("@nestjs/schedule");
+let MailerModuleClass = null;
+if (process.env.SMTP_USER && process.env.SMTP_PASS) {
+    try {
+        const mailerModule = require('@nestjs-modules/mailer');
+        MailerModuleClass = mailerModule.MailerModule;
+    }
+    catch (e) {
+        console.log('MailerModule not available');
+    }
+}
 const auth_module_1 = require("./auth/auth.module");
 const users_module_1 = require("./users/users.module");
 const schools_module_1 = require("./schools/schools.module");
@@ -58,20 +67,23 @@ exports.AppModule = AppModule = __decorate([
                 secret: process.env.JWT_SECRET || 'childclub-secret-key',
                 signOptions: { expiresIn: '24h' },
             }),
-            mailer_1.MailerModule.forRoot({
-                transport: {
-                    host: process.env.SMTP_HOST || 'smtp.gmail.com',
-                    port: parseInt(process.env.SMTP_PORT) || 587,
-                    secure: false,
-                    auth: {
-                        user: process.env.SMTP_USER || '',
-                        pass: process.env.SMTP_PASS || '',
+            ...(MailerModuleClass ? [MailerModuleClass.forRoot({
+                    transport: {
+                        host: process.env.SMTP_HOST || 'smtp.gmail.com',
+                        port: parseInt(process.env.SMTP_PORT) || 587,
+                        secure: false,
+                        auth: {
+                            user: process.env.SMTP_USER,
+                            pass: process.env.SMTP_PASS,
+                        },
+                        tls: {
+                            rejectUnauthorized: false
+                        }
                     },
-                },
-                defaults: {
-                    from: process.env.SMTP_FROM || 'noreply@childclub.com',
-                },
-            }),
+                    defaults: {
+                        from: process.env.SMTP_FROM || 'noreply@childclub.com',
+                    },
+                })] : []),
             schedule_1.ScheduleModule.forRoot(),
             auth_module_1.AuthModule,
             users_module_1.UsersModule,

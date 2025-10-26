@@ -9,8 +9,8 @@ export declare class AuthService {
     private readonly userRepository;
     private readonly schoolRepository;
     private readonly jwtService;
-    private readonly mailerService;
-    constructor(userRepository: Repository<User>, schoolRepository: Repository<School>, jwtService: JwtService, mailerService: MailerService);
+    private readonly mailerService?;
+    constructor(userRepository: Repository<User>, schoolRepository: Repository<School>, jwtService: JwtService, mailerService?: MailerService);
     validateUser(email: string, password: string): Promise<any>;
     login(loginDto: LoginDto): Promise<{
         access_token: string;
