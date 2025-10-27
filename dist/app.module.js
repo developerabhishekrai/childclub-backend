@@ -42,6 +42,7 @@ const uploads_module_1 = require("./uploads/uploads.module");
 const dashboard_module_1 = require("./dashboard/dashboard.module");
 const calendar_module_1 = require("./calendar/calendar.module");
 const contact_module_1 = require("./contact/contact.module");
+const config_2 = require("@nestjs/config");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -53,16 +54,18 @@ exports.AppModule = AppModule = __decorate([
                 envFilePath: '.env',
             }),
             typeorm_1.TypeOrmModule.forRootAsync({
-                useFactory: () => ({
+                imports: [config_1.ConfigModule],
+                inject: [config_2.ConfigService],
+                useFactory: (configService) => ({
                     type: 'mysql',
-                    host: process.env.DB_HOST || 'localhost',
-                    port: parseInt(process.env.DB_PORT || '3306'),
-                    username: process.env.DB_USERNAME || 'root',
-                    password: process.env.DB_PASSWORD || '',
-                    database: process.env.DB_DATABASE || 'childclub',
+                    host: configService.get('DB_HOST'),
+                    port: parseInt(configService.get('DB_PORT', '3306')),
+                    username: configService.get('DB_USERNAME'),
+                    password: configService.get('DB_PASSWORD'),
+                    database: configService.get('DB_DATABASE'),
                     entities: [__dirname + '/**/*.entity{.ts,.js}'],
                     synchronize: false,
-                    logging: process.env.NODE_ENV === 'development',
+                    logging: configService.get('NODE_ENV') === 'development',
                 }),
             }),
             jwt_1.JwtModule.registerAsync({

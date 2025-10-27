@@ -36,6 +36,7 @@ import { UploadsModule } from './uploads/uploads.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { CalendarModule } from './calendar/calendar.module';
 import { ContactModule } from './contact/contact.module';
+import { ConfigService } from '@nestjs/config';
 
 @Module({
   imports: [
@@ -46,17 +47,20 @@ import { ContactModule } from './contact/contact.module';
     }),
     
     // Database - Use ConfigService for proper env variable loading
+
     TypeOrmModule.forRootAsync({
-      useFactory: () => ({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
         type: 'mysql',
-        host: process.env.DB_HOST || 'localhost',
-        port: parseInt(process.env.DB_PORT || '3306'),
-        username: process.env.DB_USERNAME || 'root',
-        password: process.env.DB_PASSWORD || '',
-        database: process.env.DB_DATABASE || 'childclub',
+        host: configService.get<string>('DB_HOST'),
+        port: parseInt(configService.get<string>('DB_PORT', '3306')),
+        username: configService.get<string>('DB_USERNAME'),
+        password: configService.get<string>('DB_PASSWORD'),
+        database: configService.get<string>('DB_DATABASE'),
         entities: [__dirname + '/**/*.entity{.ts,.js}'],
-        synchronize: false, // Disable synchronization since database already exists
-        logging: process.env.NODE_ENV === 'development',
+        synchronize: false,
+        logging: configService.get<string>('NODE_ENV') === 'development',
       }),
     }),
     
