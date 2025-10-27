@@ -52,20 +52,24 @@ exports.AppModule = AppModule = __decorate([
                 isGlobal: true,
                 envFilePath: '.env',
             }),
-            typeorm_1.TypeOrmModule.forRoot({
-                type: 'mysql',
-                host: process.env.DB_HOST || 'localhost',
-                port: parseInt(process.env.DB_PORT) || 3306,
-                username: process.env.DB_USERNAME || 'root',
-                password: process.env.DB_PASSWORD || '',
-                database: process.env.DB_DATABASE || 'childclub',
-                entities: [__dirname + '/**/*.entity{.ts,.js}'],
-                synchronize: false,
-                logging: process.env.NODE_ENV === 'development',
+            typeorm_1.TypeOrmModule.forRootAsync({
+                useFactory: () => ({
+                    type: 'mysql',
+                    host: process.env.DB_HOST || 'localhost',
+                    port: parseInt(process.env.DB_PORT || '3306'),
+                    username: process.env.DB_USERNAME || 'root',
+                    password: process.env.DB_PASSWORD || '',
+                    database: process.env.DB_DATABASE || 'childclub',
+                    entities: [__dirname + '/**/*.entity{.ts,.js}'],
+                    synchronize: false,
+                    logging: process.env.NODE_ENV === 'development',
+                }),
             }),
-            jwt_1.JwtModule.register({
-                secret: process.env.JWT_SECRET || 'childclub-secret-key',
-                signOptions: { expiresIn: '24h' },
+            jwt_1.JwtModule.registerAsync({
+                useFactory: () => ({
+                    secret: process.env.JWT_SECRET || 'childclub-secret-key',
+                    signOptions: { expiresIn: '24h' },
+                }),
             }),
             ...(MailerModuleClass ? [MailerModuleClass.forRoot({
                     transport: {
